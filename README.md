@@ -1,5 +1,6 @@
 # gsa-displacy-demo
 
+![GSA Example Demo](./docs/screenshot-gsa.png)
 
 ### Setup
 Make sure to have conda installed
