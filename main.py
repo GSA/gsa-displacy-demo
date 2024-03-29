@@ -1,4 +1,5 @@
 # Core Pkgs
+import spacy_transformers
 import streamlit as st 
 
 # NLP Pkgs
@@ -6,9 +7,9 @@ import spacy_streamlit
 import spacy
 
 models = {
-    'transformer' : spacy.load("en_core_web_trf")
-    , 'large' : spacy.load("en_core_web_lg")
-    , 'small' : spacy.load("en_core_web_sm")
+    'transformer' : spacy.load("./models/en_core_web_trf-3.7.3/en_core_web_trf/en_core_web_trf-3.7.3")
+    , 'large' : spacy.load("./models/en_core_web_lg-3.7.1/en_core_web_lg/en_core_web_lg-3.7.1")
+    , 'small' : spacy.load("./models/en_core_web_sm-3.7.1/en_core_web_sm/en_core_web_sm-3.7.1")
 }
 
 import os
