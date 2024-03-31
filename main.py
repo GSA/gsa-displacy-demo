@@ -6,6 +6,7 @@ import spacy_streamlit
 import spacy
 import eng_spacysentiment
 from spacytextblob.spacytextblob import SpacyTextBlob
+import pandas as pd
 
 nlp_sentiment = eng_spacysentiment.load()
 nlp_sentiment.add_pipe("spacytextblob")
@@ -13,7 +14,6 @@ nlp_sentiment.add_pipe("spacytextblob")
 nlp_transformer =  spacy.load("./models/en_core_web_trf-3.7.3/en_core_web_trf/en_core_web_trf-3.7.3")
 nlp_large = spacy.load("./models/en_core_web_lg-3.7.1/en_core_web_lg/en_core_web_lg-3.7.1")
 nlp_small = spacy.load("./models/en_core_web_sm-3.7.1/en_core_web_sm/en_core_web_sm-3.7.1")
-
 
 nlp_transformer.add_pipe("spacytextblob")
 nlp_large.add_pipe("spacytextblob")
@@ -33,16 +33,24 @@ from PIL import Image
 
 print(os.getcwd())
 
+def get_top_cat(doc):
+    """takes a spacy doc object and returns the category with highest score"""
+    cats = doc.cats
+    max_score = max(cats.values())
+    max_cats = [k for k, v in cats.items() if v == max_score]
+    max_cat = max_cats[0]
+    return (max_cat, max_score)
+
 def main():
     """A Simple NLP app with Spacy-Streamlit"""
 
-    st.title("Spacy-Streamlit NLP App")
+    st.title("GSA Natural Language Processing (NLP) Streamlit App")
     our_image = Image.open('./US-GeneralServicesAdministration-Logo.png')
     st.image(our_image)
 
     menu = ["NER", 'TOKENIZE', 'SENTIMENT', 'CLASSIFY']
     choice = st.sidebar.selectbox("Menu",menu)
-
+    
     menu_model = ['small', 'large', 'transformer']
     choice_model = st.sidebar.selectbox("Model", menu_model)
 
@@ -68,8 +76,9 @@ The Inflation Reduction Act includes $3.4 billion for GSA to build, modernize, a
 
 This announcement is part of President Biden’s Investing in America agenda, focused on growing the American economy from the bottom up and the middle-out – from rebuilding our nation’s infrastructure, to creating a manufacturing and innovation boom, to building a clean-energy economy that will combat climate change and make our communities more resilient."""
 
+
     if choice == "TOKENIZE":
-        st.subheader("Tokenization")
+        st.subheader("Tokenization and processing")
         raw_text = st.text_area("Your Text", demo_text)
         docx = nlp(raw_text)
         if st.button("Tokenize"):
@@ -77,26 +86,55 @@ This announcement is part of President Biden’s Investing in America agenda, fo
 
     elif choice == "NER":
         st.subheader("Named Entity Recognition")
+        st.markdown("> This tool allows you to perform Named Entity Recognition (NER) to extract important entities in text. NER seeks to locate and classify entities using models built on large amounts of text. They don't suffer from some of the issues plaguing traditional approaches: NER is capable of extracting mispelled or previously unseen entities, and is more robust to noise.")
+        st.markdown("> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text as well! It works well on a number of different text data such as survey responses to government reports. Try out different models by using the dropdown on the left.")
         raw_text = st.text_area("Your Text",demo_text)
         docx = nlp(raw_text)
         spacy_streamlit.visualize_ner(docx,labels=nlp.get_pipe('ner').labels)
 
     elif choice == "SENTIMENT":
-        st.subheader("Lexicon-based Sentiment Scores and Sentiment Text Classification")
+        st.subheader("Sentiment Analysis")
+        # st.markdown("Sentiment analysis can include things")
+        st.markdown("> This tool provides lexicon-based sentiment scores and sentiment text classification. Because this pretrained model was trained using short snippets of text, it is applied at the paragraph-level here in this demo on this example text. This text classifier predicts sentiment (postive :smiley: , negative :slightly_frowning_face: , and neutral :neutral_face:) is appropriate to use for short peices of text rather than long texts (e.g., on a paragraph or sentence vs a longer document).")
         raw_text = st.text_area("Your Text",demo_text)
-       # sentences = list(nlp(raw_text).sents)
-        for para in [p for p in raw_text.split("\n") if p is not '']:
+        docx = nlp_sentiment(demo_text)
+        st.success(f"Overall Lexicon Polarity Score: {docx._.polarity}")
+        st.success(f"Overall Lexicon Subjectivity Score: {docx._.subjectivity}")
+        l_dfs = []
+        c = 0
+        for para in [p for p in raw_text.split("\n") if p != '']:
+            c+= 1
+            
             docx = nlp_sentiment(para)
-            spacy_streamlit.visualize_textcat(docx)
-            st.success(f"Lexicon Polarity Score: {docx._.polarity}")
-            st.success(f"Lexicon Subjectivity Score: {docx._.subjectivity}")
+            id_ = f'paragraph.{c}'
+            # st.markdown(f"  ###### {id_}")
+            st.markdown(f"> **{id_}**:   {para}")
+           # visualize_textcat(docx)
+    
+            label_,score_ = get_top_cat(docx)
+
+            d = docx.to_json()['cats']
+            d['text'] = para
+            d['label'] = label_
+            d['text_id'] = id_
+            
+            df = pd.DataFrame([d])[["text_id", "text", "positive", "negative", "neutral", "label"]]
+            l_dfs.append(df)
+            # color_ = {'negative': '#faa0a0',
+            # 'positive': "#e0f0e3",
+            # 'neutral': "#e6e6e6"}.get(label_,  '#faa0a0')
+          
+            st.markdown(f"  ###### {label_} ({str(score_)[:5]})")
+        
+        st.dataframe(pd.concat(l_dfs))
+            # spacy_streamlit.visualize_textcat(docx)
     
     elif choice == "CLASSIFY":
         st.subheader("Email Classifier")
+        st.markdown("This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
         raw_text = st.text_area("Your Text",demo_text)
-        if st.button("Predict"):
-            docx = email_nlp(raw_text)
-            spacy_streamlit.visualize_textcat(docx)
+        docx = email_nlp(raw_text)
+        spacy_streamlit.visualize_textcat(docx)
             
 
 if __name__ == '__main__':
