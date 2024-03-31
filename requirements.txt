@@ -1,2 +1,3 @@
 spacy-streamlit
 spacy-curated-transformers
+spacy-textblob
