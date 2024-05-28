@@ -134,8 +134,8 @@ This announcement is part of President Biden’s Investing in America agenda, fo
             # spacy_streamlit.visualize_textcat(docx)
     elif choice == "ASPECT-LEVEL SENTIMENT":
         st.subheader("Aspect-level Sentiment Analysis")
-        st.markdown("Aspect-level sentiment analysis. Sentences with no aspects identified are removed from the prediction table.")
-        raw_text = st.text_area("Your Text", "The information was helpful, but the website was hard to navigate.")
+        st.markdown("> This tool performs aspect-level sentiment analysis. Sentences with no aspects identified are removed from the prediction table. Example shown is a fake customer feedback response mentioning both positive and negative aspects of their experience.")
+        raw_text = st.text_area("Your Text",  "The staff was helpful, but the process was hard to navigate.")
         model = AbsaModel.from_pretrained(
             "./models/setfit-absa-paraphrase-mpnet-base-v2-aspect",
             "./models/setfit-absa-paraphrase-mpnet-base-v2-polarity",
@@ -148,31 +148,37 @@ This announcement is part of President Biden’s Investing in America agenda, fo
             c+=1
             text = sent.text
             pred = model.predict(text)
-            preds.append({"sentence_id": f"s.{c}" "text": text, "pred": pred})
-        
-        df = pd.DataFrame(preds)
-        dfe = df.explode("pred").reset_index(drop=True)
-        dfe = dfe[dfe["pred"].notna()]
-        df_final dfe.drop(columns=["pred"]).merge(dfe["pred"].apply(pd.Series), right_index=True, left_index=True).set_index(["sentence_id", "text", "span"])
-        st.dataframe(df_final)
+            if len(pred[0]) == 0:
+                continue
+            else: preds.append({"text_id": f"sentence.{c}", "text": text, "pred": pred})
+        if len(preds) > 0:
+            
+            df = pd.DataFrame(preds)
+            dfe = df.explode("pred").reset_index(drop=True)
+            dfe = dfe[dfe["pred"].notna()]
+            
+            df_final = dfe.drop(columns=["pred"]).merge(dfe["pred"].apply(pd.Series), right_index=True, left_index=True).set_index(["text_id", "text", "span"])
+            st.dataframe(df_final)
+
+        else: st.write("No aspects identified.")
         
 
     elif choice == "EMOTION":
         st.subheader("Multi-label Email Text Classification")
-        st.markdown("""> This tool allows you to predicts [Ekman's 6 basic emotions](https://en.wikipedia.org/wiki/Emotion_classification), plus a neutral class:
-    anger 🤬
-    disgust 🤢
-    fear 😨
-    joy 😀
-    neutral 😐
-    sadness 😭
-    surprise 😲
+        st.markdown("""> This tool allows you to predicts [Ekman's 6 basic emotions](https://en.wikipedia.org/wiki/Emotion_classification), plus a neutral class (
+    anger 🤬,
+    disgust 🤢,
+    fear 😨,
+    joy 😀,
+    neutral 😐,
+    sadness 😭,
+    surprise 😲)
     using a multi-label text classification model that will provide probabilities for each label (aka class).""")
         raw_text = st.text_area("Your Text",demo_text)
         tokenizer = AutoTokenizer.from_pretrained("./models/emotion-english-distilroberta-base")
         model =  AutoModelForSequenceClassification.from_pretrained("./models/emotion-english-distilroberta-base")
         classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, return_all_scores=True)
-        st.DataFrame(pd.DataFrame(classifier(raw_text)[0]))
+        st.dataframe(pd.DataFrame(classifier(raw_text)[0]))
 
 
     elif choice == "CLASSIFY EMAIL":
@@ -182,7 +188,7 @@ This announcement is part of President Biden’s Investing in America agenda, fo
         raw_text = st.text_area("Your Text",demo_text)
         docx = email_nlp(raw_text)
         dfl = []
-        for k, v in docx.to_json()['cats']:
+        for k, v in docx.to_json()['cats'].items():
             dfl.append({'label': k, 'score': v})
         
         df = pd.DataFrame(dfl)
