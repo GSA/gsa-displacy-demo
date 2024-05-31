@@ -3,6 +3,12 @@
 ![GSA Example Demo](./docs/screenshot-gsa.png)
 
 ### Setup
+- Anaconda for package handling
+- models compiled with Linux
+- recommend Use a compute EC2 like c5xlarge 
+- pip installed packages in the requirements-full.txt
+- git-lfs for hugging face models
+
 Make sure to have conda installed
 - create new conda environment: `conda create --name=gsa_displacy_demo python=3.9`
 - activate new conda env: `conda activate gsa_displacy_demo`

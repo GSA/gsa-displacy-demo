@@ -7,6 +7,9 @@ import spacy
 import eng_spacysentiment
 from spacytextblob.spacytextblob import SpacyTextBlob
 import pandas as pd
+from transformers import pipeline, AutoTokenizer, BartForConditionalGeneration, AutoModelForSequenceClassification
+from setfit import AbsaModel
+
 
 nlp_sentiment = eng_spacysentiment.load()
 nlp_sentiment.add_pipe("spacytextblob")
@@ -48,7 +51,8 @@ def main():
     our_image = Image.open('./US-GeneralServicesAdministration-Logo.png')
     st.image(our_image)
 
-    menu = ["NER", 'TOKENIZE', 'SENTIMENT', 'CLASSIFY']
+    menu = ["NER", "TOKENIZE", "GENERAL SENTIMENT", "ASPECT-LEVEL SENTIMENT", "EMOTION", "CLASSIFY EMAIL", "SUMMARIZE"]
+    # to add - classify news
     choice = st.sidebar.selectbox("Menu",menu)
     
     menu_model = ['small', 'large', 'transformer']
@@ -92,8 +96,8 @@ This announcement is part of President Biden’s Investing in America agenda, fo
         docx = nlp(raw_text)
         spacy_streamlit.visualize_ner(docx,labels=nlp.get_pipe('ner').labels)
 
-    elif choice == "SENTIMENT":
-        st.subheader("Sentiment Analysis")
+    elif choice == "GENERAL SENTIMENT":
+        st.subheader("General Sentiment Analysis")
         # st.markdown("Sentiment analysis can include things")
         st.markdown("> This tool provides lexicon-based sentiment scores and sentiment text classification. Because this pretrained model was trained using short snippets of text, it is applied at the paragraph-level here in this demo on this example text. This text classifier predicts sentiment (postive :smiley: , negative :slightly_frowning_face: , and neutral :neutral_face:) is appropriate to use for short peices of text rather than long texts (e.g., on a paragraph or sentence vs a longer document).")
         raw_text = st.text_area("Your Text",demo_text)
@@ -126,15 +130,92 @@ This announcement is part of President Biden’s Investing in America agenda, fo
           
             st.markdown(f"  ###### {label_} ({str(score_)[:5]})")
         
-        st.dataframe(pd.concat(l_dfs))
+        st.dataframe(pd.concat(l_dfs).reset_index(drop=True))
             # spacy_streamlit.visualize_textcat(docx)
-    
-    elif choice == "CLASSIFY":
+    elif choice == "ASPECT-LEVEL SENTIMENT":
+        st.subheader("Aspect-level Sentiment Analysis")
+        st.markdown("> This tool performs aspect-level sentiment analysis. Sentences with no aspects identified are removed from the prediction table. Example shown is a fake customer feedback response mentioning both positive and negative aspects of their experience. Try it out with your own example.")
+        raw_text = st.text_area("Your Text",  "The staff was helpful, but the process was hard to navigate.")
+        model = AbsaModel.from_pretrained(
+            "./models/setfit-absa-paraphrase-mpnet-base-v2-aspect",
+            "./models/setfit-absa-paraphrase-mpnet-base-v2-polarity",
+            spacy_model="en_core_web_lg",
+            )
+        doc = nlp_large(raw_text)
+        preds = []
+        c = 0
+        for sent in doc.sents:
+            c+=1
+            text = sent.text
+            pred = model.predict(text)
+            if len(pred[0]) == 0:
+                continue
+            else: preds.append({"text_id": f"sentence.{c}", "text": text, "pred": pred})
+        if len(preds) > 0:
+            
+            df = pd.DataFrame(preds)
+            dfe = df.explode("pred").reset_index(drop=True)
+            dfe = dfe[dfe["pred"].notna()]
+            
+            df_final = dfe.drop(columns=["pred"]).merge(dfe["pred"].apply(pd.Series), right_index=True, left_index=True).set_index(["text_id", "text", "span"])
+            st.dataframe(df_final)
+
+        else: st.write("No aspects identified.")
+        
+
+    elif choice == "EMOTION":
+        st.subheader("Multi-label Email Text Classification")
+        st.markdown("""> This tool allows you to predicts [Ekman's 6 basic emotions](https://en.wikipedia.org/wiki/Emotion_classification), plus a neutral class (
+    anger 🤬,
+    disgust 🤢,
+    fear 😨,
+    joy 😀,
+    neutral 😐,
+    sadness 😭,
+    surprise 😲)
+    using a multi-label text classification model that will provide probabilities for each label (aka class).""")
+        raw_text = st.text_area("Your Text",demo_text)
+        tokenizer = AutoTokenizer.from_pretrained("./models/emotion-english-distilroberta-base")
+        model =  AutoModelForSequenceClassification.from_pretrained("./models/emotion-english-distilroberta-base")
+        classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, return_all_scores=True)
+        st.dataframe(pd.DataFrame(classifier(raw_text)[0]))
+
+
+    elif choice == "CLASSIFY EMAIL":
         st.subheader("Email Classifier")
-        st.markdown("This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
+        st.markdown("> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
+
         raw_text = st.text_area("Your Text",demo_text)
         docx = email_nlp(raw_text)
-        spacy_streamlit.visualize_textcat(docx)
+        dfl = []
+        for k, v in docx.to_json()['cats'].items():
+            dfl.append({'label': k, 'score': v})
+        
+        df = pd.DataFrame(dfl)
+        st.dataframe(df)
+        #spacy_streamlit.visualize_textcat(docx)
+
+    elif choice == "CLASSIFY NEWS":
+        st.subheader("News Classifier")
+        st.markdown("> This is a model trained and developed at GSA from OGP and OCFO's Strategic Atlas collaboration.")
+        raw_text = st.text_area("Your Text", demo_text)
+        ## add classifier
+        ## add visualize te
+        # docx = email_nlp(raw_text)
+        # spacy_streamlit.visualize_textcat(docx)
+
+    elif choice == "SUMMARIZE":
+        st.subheader("Summarize")
+        st.markdown(">This tool allows you to apply summarization to your text.")
+        st.markdown("> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text to summarize as well!")
+        raw_text = st.text_area("Your Text", demo_text)
+        modelsum = BartForConditionalGeneration.from_pretrained("./models/distilbart-cnn-12-6")
+        tokenizersum = AutoTokenizer.from_pretrained("./models/distilbart-cnn-12-6")
+        
+        textsum = pipeline(task="summarization", model=modelsum, tokenizer=tokenizersum)
+        st.write(textsum(raw_text))
+    
+
             
 
 if __name__ == '__main__':
