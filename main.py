@@ -134,7 +134,7 @@ This announcement is part of President Biden’s Investing in America agenda, fo
             # spacy_streamlit.visualize_textcat(docx)
     elif choice == "ASPECT-LEVEL SENTIMENT":
         st.subheader("Aspect-level Sentiment Analysis")
-        st.markdown("> This tool performs aspect-level sentiment analysis. Sentences with no aspects identified are removed from the prediction table. Example shown is a fake customer feedback response mentioning both positive and negative aspects of their experience.")
+        st.markdown("> This tool performs aspect-level sentiment analysis. Sentences with no aspects identified are removed from the prediction table. Example shown is a fake customer feedback response mentioning both positive and negative aspects of their experience. Try it out with your own example.")
         raw_text = st.text_area("Your Text",  "The staff was helpful, but the process was hard to navigate.")
         model = AbsaModel.from_pretrained(
             "./models/setfit-absa-paraphrase-mpnet-base-v2-aspect",

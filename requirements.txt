@@ -1,3 +1,6 @@
+streamlit
 spacy-streamlit
 spacy-curated-transformers
 spacy-textblob
+spacy-huggingface-pipelines
+transformers[torch]

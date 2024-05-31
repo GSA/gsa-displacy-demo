@@ -1,6 +1,8 @@
 *en_core_web*/
 *en_core_web*.gz
 *.DS_Store
+models/*
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
