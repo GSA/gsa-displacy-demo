@@ -51,7 +51,9 @@ def main():
     our_image = Image.open('./US-GeneralServicesAdministration-Logo.png')
     st.image(our_image)
 
-    menu = ["NER", "TOKENIZE", "GENERAL SENTIMENT", "ASPECT-LEVEL SENTIMENT", "EMOTION", "CLASSIFY EMAIL", "SUMMARIZE"]
+    menu = ["NER", "TOKENIZE", "GENERAL SENTIMENT", "ASPECT-LEVEL SENTIMENT", 
+	    # "EMOTION",
+	    "CLASSIFY EMAIL", "SUMMARIZE"]
     # to add - classify news
     choice = st.sidebar.selectbox("Menu",menu)
     
@@ -163,22 +165,22 @@ This announcement is part of President Biden’s Investing in America agenda, fo
         else: st.write("No aspects identified.")
         
 
-    elif choice == "EMOTION":
-        st.subheader("Multi-label Email Text Classification")
-        st.markdown("""> This tool allows you to predicts [Ekman's 6 basic emotions](https://en.wikipedia.org/wiki/Emotion_classification), plus a neutral class (
-    anger 🤬,
-    disgust 🤢,
-    fear 😨,
-    joy 😀,
-    neutral 😐,
-    sadness 😭,
-    surprise 😲)
-    using a multi-label text classification model that will provide probabilities for each label (aka class).""")
-        raw_text = st.text_area("Your Text",demo_text)
-        tokenizer = AutoTokenizer.from_pretrained("./models/emotion-english-distilroberta-base")
-        model =  AutoModelForSequenceClassification.from_pretrained("./models/emotion-english-distilroberta-base")
-        classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, return_all_scores=True)
-        st.dataframe(pd.DataFrame(classifier(raw_text)[0]))
+    # elif choice == "EMOTION":
+    #     st.subheader("Multi-label Email Text Classification")
+    #     st.markdown("""> This tool allows you to predicts [Ekman's 6 basic emotions](https://en.wikipedia.org/wiki/Emotion_classification), plus a neutral class (
+    # anger 🤬,
+    # disgust 🤢,
+    # fear 😨,
+    # joy 😀,
+    # neutral 😐,
+    # sadness 😭,
+    # surprise 😲)
+    # using a multi-label text classification model that will provide probabilities for each label (aka class).""")
+    #     raw_text = st.text_area("Your Text",demo_text)
+    #     tokenizer = AutoTokenizer.from_pretrained("./models/emotion-english-distilroberta-base")
+    #     model =  AutoModelForSequenceClassification.from_pretrained("./models/emotion-english-distilroberta-base")
+    #     classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, return_all_scores=True)
+    #     st.dataframe(pd.DataFrame(classifier(raw_text)[0]))
 
 
     elif choice == "CLASSIFY EMAIL":
