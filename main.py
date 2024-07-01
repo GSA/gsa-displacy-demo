@@ -84,7 +84,18 @@ This announcement is part of President Biden’s Investing in America agenda, fo
 
 
     if choice == "TOKENIZE":
-        st.subheader("Tokenization and processing")
+        st.subheader("Tokenization and getting linguistic features")
+	    st.markdown("> Identifying linguistic features is an important precursor for data pre-processing and downstream NLP tasks, for example, you may want to identify certain parts of speech and stop words for filtering and cleaning.")
+	    st.markdown("""> Output provides:
+			Text: The original word text.
+Lemma: The base form of the word.
+POS: The simple UPOS part-of-speech tag.
+Tag: The detailed part-of-speech tag.
+Dep: Syntactic dependency, i.e. the relation between tokens.
+Shape: The word shape – capitalization, punctuation, digits.
+is alpha: Is the token an alpha character?
+is stop: Is the token part of a stop list, i.e. the most common words of the language?"""
+)
         raw_text = st.text_area("Your Text", demo_text)
         docx = nlp(raw_text)
         if st.button("Tokenize"):
@@ -93,7 +104,7 @@ This announcement is part of President Biden’s Investing in America agenda, fo
     elif choice == "NER":
         st.subheader("Named Entity Recognition")
         st.markdown("> This tool allows you to perform Named Entity Recognition (NER) to extract important entities in text. NER seeks to locate and classify entities using models built on large amounts of text. They don't suffer from some of the issues plaguing traditional approaches: NER is capable of extracting mispelled or previously unseen entities, and is more robust to noise.")
-        st.markdown("> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text as well! It works well on a number of different text data such as survey responses to government reports. Try out different models by using the dropdown on the left.")
+        st.markdown("""> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text as well! It works well on a number of different text data such as survey responses to government reports. Try out different models by using the dropdown on the left.""")
         raw_text = st.text_area("Your Text",demo_text)
         docx = nlp(raw_text)
         spacy_streamlit.visualize_ner(docx,labels=nlp.get_pipe('ner').labels)
@@ -186,7 +197,7 @@ This announcement is part of President Biden’s Investing in America agenda, fo
     elif choice == "CLASSIFY EMAIL":
         st.subheader("Email Classifier")
         st.markdown("> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories (also known as "classes") outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
-	    st.markdown("> In a multiclass classification algorithm, the output is a set of prediction scores. These scores show how confident the model is that an observation belongs to each class (or category). The predicted class is simply the one with the highest score.")
+	st.markdown("""> In a multiclass classification algorithm, the output is a set of prediction scores. These scores show how confident the model is that an observation belongs to each class (or category). The predicted class is simply the one with the highest score.""")
 	
 	raw_text = st.text_area("Your Text",demo_text)
         docx = email_nlp(raw_text)
