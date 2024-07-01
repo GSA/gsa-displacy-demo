@@ -48,7 +48,7 @@ def main():
     """A Simple NLP app with Spacy-Streamlit"""
 
     st.title("GSA Natural Language Processing (NLP) Streamlit App")
-    our_image = Image.open('./US-GeneralServicesAdministration-Logo.png')
+    our_image = Image.open('./GSA_Star_Mark_b_w.jpeg')
     st.image(our_image)
 
     menu = ["NER", "TOKENIZE", "GENERAL SENTIMENT", "ASPECT-LEVEL SENTIMENT", 
@@ -86,15 +86,15 @@ This announcement is part of President Biden’s Investing in America agenda, fo
     if choice == "TOKENIZE":
         st.subheader("Tokenization and getting linguistic features")
         st.markdown("> Identifying linguistic features is an important precursor for data pre-processing and downstream NLP tasks, for example, you may want to identify certain parts of speech and stop words for filtering and cleaning.")
-        st.markdown("""> Output provides:
-			Text: The original word text.
+        st.markdown("""> Output provides:\n
+```Text: The original word text.
 Lemma: The base form of the word.
-POS: The simple UPOS part-of-speech tag.
+POS: The simple [Universal POS part-of-speech tag](https://universaldependencies.org/u/pos/).
 Tag: The detailed part-of-speech tag.
 Dep: Syntactic dependency, i.e. the relation between tokens.
 Shape: The word shape – capitalization, punctuation, digits.
 is alpha: Is the token an alpha character?
-is stop: Is the token part of a stop list, i.e. the most common words of the language?"""
+is stop: Is the token part of a stop list, i.e. the most common words of the language?```"""
 )
         raw_text = st.text_area("Your Text", demo_text)
         docx = nlp(raw_text)
@@ -112,7 +112,9 @@ is stop: Is the token part of a stop list, i.e. the most common words of the lan
     elif choice == "GENERAL SENTIMENT":
         st.subheader("General Sentiment Analysis")
         # st.markdown("Sentiment analysis can include things")
-        st.markdown("> This tool provides lexicon-based sentiment scores and sentiment text classification. Because this pretrained model was trained using short snippets of text, it is applied at the paragraph-level here in this demo on this example text. This text classifier predicts sentiment (postive :smiley: , negative :slightly_frowning_face: , and neutral :neutral_face:) is appropriate to use for short peices of text rather than long texts (e.g., on a paragraph or sentence vs a longer document).")
+        st.markdown("> This tool provides lexicon-based sentiment scores and sentiment text classification.")
+        st.markdown("> The lexicon-based sentiment analysis is applied to the entire text input and provides an overall polarity and subjectivity score. The polarity score is a float within the range [-1.0, 1.0] where -1.0 is very negative and 1.0 is very positive. The subjectivity is a float within the range [0.0, 1.0] where 0.0 is very objective and 1.0 is very subjective.")
+        st.markdown("> Because this pretrained model was trained using short snippets of text, it is applied at the paragraph-level here in this demo on this example text. This text classifier predicts sentiment (postive :smiley: , negative :slightly_frowning_face: , and neutral :neutral_face:) is appropriate to use for short peices of text rather than long texts (e.g., on a paragraph or sentence vs a longer document).")
         
         raw_text = st.text_area("Your Text",demo_text)
         docx = nlp_sentiment(raw_text)
@@ -197,10 +199,10 @@ is stop: Is the token part of a stop list, i.e. the most common words of the lan
 
     elif choice == "CLASSIFY EMAIL":
         st.subheader("Email Classifier")
-        st.markdown("""> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories (also known as "classes") outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.""")
+        st.markdown("""> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a multi-class text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories (also known as "classes") outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.""")
         st.markdown("""> In a multiclass classification algorithm, the output is a set of prediction scores. These scores show how confident the model is that an observation belongs to each class (or category). The predicted class is simply the one with the highest score.""")
-	
-	raw_text = st.text_area("Your Text",demo_text)
+	    
+        raw_text = st.text_area("Your Text",demo_text)
         docx = email_nlp(raw_text)
         dfl = []
         for k, v in docx.to_json()['cats'].items():
@@ -221,13 +223,14 @@ is stop: Is the token part of a stop list, i.e. the most common words of the lan
 
     elif choice == "SUMMARIZE":
         st.subheader("Summarize")
-        st.markdown(">This tool allows you to apply summarization to your text. We utilize the open-source model published from [Hugging Face](https://huggingface.co/sshleifer/distilbart-cnn-12-6).")
+        st.markdown("> This tool allows you to apply summarization to your text. We utilize the open-source model published from [Hugging Face](https://huggingface.co/sshleifer/distilbart-cnn-12-6). There is a text limit so please to less than 850 words and less than 2,500 characters.")
         st.markdown("> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text to summarize as well!")
         raw_text = st.text_area("Your Text", demo_text)
         modelsum = BartForConditionalGeneration.from_pretrained("./models/distilbart-cnn-12-6")
         tokenizersum = AutoTokenizer.from_pretrained("./models/distilbart-cnn-12-6")
         
         textsum = pipeline(task="summarization", model=modelsum, tokenizer=tokenizersum)
+
         st.write(textsum(raw_text))
     
 
