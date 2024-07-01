@@ -113,6 +113,7 @@ is stop: Is the token part of a stop list, i.e. the most common words of the lan
         st.subheader("General Sentiment Analysis")
         # st.markdown("Sentiment analysis can include things")
         st.markdown("> This tool provides lexicon-based sentiment scores and sentiment text classification. Because this pretrained model was trained using short snippets of text, it is applied at the paragraph-level here in this demo on this example text. This text classifier predicts sentiment (postive :smiley: , negative :slightly_frowning_face: , and neutral :neutral_face:) is appropriate to use for short peices of text rather than long texts (e.g., on a paragraph or sentence vs a longer document).")
+        
         raw_text = st.text_area("Your Text",demo_text)
         docx = nlp_sentiment(raw_text)
         st.success(f"Overall Lexicon Polarity Score: {docx._.polarity}")
