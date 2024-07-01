@@ -185,9 +185,10 @@ This announcement is part of President Biden’s Investing in America agenda, fo
 
     elif choice == "CLASSIFY EMAIL":
         st.subheader("Email Classifier")
-        st.markdown("> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
-
-        raw_text = st.text_area("Your Text",demo_text)
+        st.markdown("> This is a model trained and developed at GSA from OCFO's collaboration with Department of Labor's Employment Training Administration CareerOneStop program. CareerOneStop is a digital platform that provides resources for career exploration, training, jobs, disaster assistance, and more for a wide range of different types of users. We built a text classifier to automatically categorize emails as an automated email such as from spam or a newsletter versus a user. The categories (also known as "classes") outside of spam were based on CareerOneStop's main user groups that they had previously defined in their survey. This model would not be appropriate to use on use cases that differ greatly from CareerOneStop. This classifier was applied to millions of emails over a span of 7+ years so that we could better understand how different user groups are experiencing the service.")
+	st.markdown("> In a multiclass classification algorithm, the output is a set of prediction scores. These scores show how confident the model is that an observation belongs to each class (or category). The predicted class is simply the one with the highest score.")
+	
+	raw_text = st.text_area("Your Text",demo_text)
         docx = email_nlp(raw_text)
         dfl = []
         for k, v in docx.to_json()['cats'].items():
@@ -208,7 +209,7 @@ This announcement is part of President Biden’s Investing in America agenda, fo
 
     elif choice == "SUMMARIZE":
         st.subheader("Summarize")
-        st.markdown(">This tool allows you to apply summarization to your text.")
+        st.markdown(">This tool allows you to apply summarization to your text. We utilize the open-source model published from [Hugging Face](https://huggingface.co/sshleifer/distilbart-cnn-12-6).")
         st.markdown("> This example text comes from a [GSA press release](https://www.gsa.gov/about-us/newsroom/news-releases/gsa-celebrates-over-16-million-for-improvements-t-03272024), but you can test out your own text to summarize as well!")
         raw_text = st.text_area("Your Text", demo_text)
         modelsum = BartForConditionalGeneration.from_pretrained("./models/distilbart-cnn-12-6")
