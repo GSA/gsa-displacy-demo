@@ -92,14 +92,25 @@ Lemma: The base form of the word.
 POS: The simple [Universal POS part-of-speech tag](https://universaldependencies.org/u/pos/).
 Tag: The detailed part-of-speech tag.
 Dep: Syntactic dependency, i.e. the relation between tokens.
+Head: The original text of the token head based on syntactic dependency and the relation between child tokens).
+Morph: Morphological features.
+Ent Type: Type of entity.
 Shape: The word shape – capitalization, punctuation, digits.
 is alpha: Is the token an alpha character?
-is stop: Is the token part of a stop list, i.e. the most common words of the language?```"""
+is stop: Is the token part of a stop list, i.e. the most common words of the language?
+is digit: Is the token a digit?
+is punct: Is the token punctuation?
+is sent start: If the token at the start of a sentence.```"""
 )
         raw_text = st.text_area("Your Text", demo_text)
         docx = nlp(raw_text)
         if st.button("Tokenize"):
-            spacy_streamlit.visualize_tokens(docx,attrs=['text','lemma_', 'pos_','dep_','ent_type_'])
+            # spacy_streamlit.visualize_tokens(docx,attrs=['text','lemma_', 'pos_','dep_','ent_type_'])
+            spacy_streamlit.visualize_tokens(docx, attrs=["text", "lemma_", "pos_", "tag_", "dep_", "head", "morph",
+               "ent_type_", #"ent_iob_",
+                "shape_", "is_alpha", "is_stop",# "is_ascii",
+               "is_digit", "is_punct", # "like_num",
+                "is_sent_start"])
 
     elif choice == "NER":
         st.subheader("Named Entity Recognition")
